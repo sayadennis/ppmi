@@ -1,1 +1,12 @@
-{"file": "https://github.com/sayadennis/pd_project/cooccurrence/cooccurrence_subtypes_300genes.csv", "name": "Top 300 genes subtype overlap", "header": 0, "separator": ",", "skip": 0, "meta": {"type": "id", "index": 0, "name": "Genes"}, "sets": {"format": "binary", "start": 1, "end": 3}}
+{
+	"file": "/Users/sayadennis/Projects/pd_project/pd_repository/cooccurrence/cooccurrence_subtypes_300genes.csv", 
+	"name": "Top 300 genes subtype overlap", 
+	"header": 0, 
+	"separator": ",", 
+	"skip": 0, 
+	"meta": [
+		{"type": "id", "index": 0, "name": "Genes"}
+	], 
+	"sets": [{"format": "binary", "start": 1, "end": 3}
+	]
+}
