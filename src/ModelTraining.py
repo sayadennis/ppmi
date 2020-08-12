@@ -41,17 +41,15 @@ class HyperparameterTuning:
         
         # specify scoring and refit criteria respectively for multiclass and binary
         if self.multi:
-            multi_class = "ovr"
+            multi_class = "multinomial"
             scoring = "roc_auc_ovr_weighted"
-            refit = "roc_auc_ovr_weighted"
         else:
             multi_class = "auto"
             scoring = "roc_auc"
-            refit = "roc_auc"
         
         # cross-validate best parameter 
         lrCV = LogisticRegressionCV(Cs=param_list, class_weight="balanced", n_jobs=8, max_iter=3000,
-            multi_class=multi_class, scoring=scoring, cv=StratifiedKFold(n_splits=5, random_state=1, shuffle=True), refit=refit
+            multi_class=multi_class, scoring=scoring, cv=StratifiedKFold(n_splits=5, random_state=1, shuffle=True), refit=True
         )
         lrCV.fit(X, y)
         opt_C = lrCV.C_[0]
