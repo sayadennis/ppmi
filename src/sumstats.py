@@ -5,11 +5,24 @@ import matplotlib.pyplot as plt
 def plot_hist(X):
     # Histogram of data (both for columns and rows) –– THIS IS USES PRE-NORMALIZED DATA TO GET ACTUAL COUNTS
     fig, axs = plt.subplots(1, 2, figsize=(14,4))
-    axs[0].hist(np.sum(X, axis=0), bins=20)
-    axs[0].set_title("Number of patients for each variant", size=14)
+    # number of patients with a variant per gene
+    vals = []
+    for i in range(X.shape[1]):
+        ct = 0
+        for j in range(len(X[:,i])):
+            if X[j,i] > 0:
+                ct += 1
+            else:
+                continue
+        vals.append(ct)
+    axs[0].hist(vals, bins=20)
+    # axs[0].set_title("Number of patients per variant", size=14)
+    axs[0].set_xlabel("Number of patients")
+    axs[0].set_ylabel("Number of genes with variants")
     axs[1].hist(np.sum(X, axis=1), bins=20)
-    axs[1].set_title("Number of variants in a patient", size=14)
-
+    # axs[1].set_title("Number of variants per patient", size=14)
+    axs[1].set_xlabel("Number of variants")
+    axs[1].set_ylabel("Number of patients")
 
 def class_count(y):
     class_count = pd.DataFrame(0, index=["Subtype 1", "Subtype 2", "Subtype 3"], columns=["Counts"])
