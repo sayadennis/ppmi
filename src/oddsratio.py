@@ -8,8 +8,8 @@ def odds_ratio(X, y, n_classes=3):
         outcomes_present = y[X[:,i] > 0]
         outcomes_absent = y[X[:,i] == 0]
         for j in range(n_classes):
-            num = (outcomes_present == j).sum() / len(outcomes_present)
-            denom = (outcomes_absent == j).sum() / len(outcomes_absent)
+            num = (outcomes_present == np.unique(y)[j]).sum() / len(outcomes_present)
+            denom = (outcomes_absent == np.unique(y)[j]).sum() / len(outcomes_absent)
             odds_array[i,j] = num/denom
     return odds_array
 

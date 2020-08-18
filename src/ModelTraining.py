@@ -72,7 +72,7 @@ class HyperparameterTuning:
 
         # gridsearch and cross-validate best set of parameters 
         gsCV = GridSearchCV(
-            SVC(class_weight="balanced", max_iter=3000, probability=True, random_state=0, decision_function_shape="ovr"), 
+            SVC(class_weight="balanced", max_iter=3000, probability=True, random_state=240, decision_function_shape="ovr"), 
             param_grid=param_list, n_jobs=8, scoring=scoring, refit=refit,
             cv=StratifiedKFold(n_splits=5, random_state=1, shuffle=True)
         )
