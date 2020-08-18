@@ -1,0 +1,13 @@
+{
+	"file": "https://raw.githubusercontent.com/sayadennis/pd_project/master/model_interpretation/cooccurrence/co_matrix_lrmcoefs.csv", 
+	"name": "Cooccurrence from LRM top 300 coefs", 
+	"header": 0,
+	"separator": ",",
+	"skip": 0,
+	"meta": [
+		{"type": "id", "index": 0, "name": "Genes"}
+	], 
+	"sets": [
+		{"format": "binary", "start": 1, "end": 3}
+	]
+}
