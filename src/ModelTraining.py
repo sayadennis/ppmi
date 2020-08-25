@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn import metrics
 
 from sklearn.linear_model import LogisticRegressionCV
@@ -6,8 +7,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import OneHotEncoder
 
 from sklearn.decomposition import NMF
+
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 from sklearn.feature_selection import mutual_info_classif
@@ -53,7 +56,7 @@ class HyperparameterTuning:
         )
         lrCV.fit(X, y)
         opt_C = lrCV.C_[0]
-        opt_mean_score = np.mean(lrCV.scores_[1][:,np.where(param_list == opt_C)])
+        opt_mean_score = np.mean([lrCV.scores_[x][:,np.where(param_list == opt_C)] for x in range(1,4)]) # for classes 1-3 
 
         return opt_C, opt_mean_score
     
@@ -65,10 +68,10 @@ class HyperparameterTuning:
         # specify scoring and refit criteria respectively for multiclass and binary
         if self.multi:
             scoring = "roc_auc_ovr_weighted"
-            refit = "roc_auc_ovr_weighted"
+            refit = True
         else:
             scoring = "roc_auc"
-            refit = "roc_auc"
+            refit = True
 
         # gridsearch and cross-validate best set of parameters 
         gsCV = GridSearchCV(
@@ -130,29 +133,82 @@ class PD_NMF:
 
 
 
-class TuneSelectKBest:
+class TuneSelectKBest(HyperparameterTuning):
     """
     This class handles the tuning of the parameter K as well as selection criteria for SelectKBest function.
+
+    Example usage:
+        ktuner = TuneSelectKBest(X_train, X_test, y_train, y_test)
+        opt_k, opt_criteria, opt_C, roc_auc = ktuner.tune_selectkbest(k_list)
+        gene_set = ktuner.extract_genes(vc.columns, n_genes=opt_k)
     """
 
-    def __init__(self):
+    def __init__(self, X_train, X_test, y_train, y_test):
+        super().__init__(multi=True) # inherit all methods from HyperparameterTuning class 
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_test = y_test
         self.criteria_dict = {
             "f_classif" : f_classif, 
             "mutual_info_classif" : mutual_info_classif, 
             "chi2" : chi2, 
         }
-        self.y = y
+        self.skb = None # will later be defined when tune_selectkbest is called 
     
-    def tune_selectkbest(self, k_list, hypertune_func, multi=True, eval="micro"): # eval can be "micro" or "macro"
-        best_k = 0
-        best_criteria = 0
-        return best_k, best_criteria
-    
-    def transform(self, X_test):
-        transformed_X_test = 0
-        return transformed_X_test
-    
-    def extract_genes(self):
-        gene_set = []
-        return gene_set
+    def tune_selectkbest(self, k_list, multi=True):
+        pf = np.zeros((len(k_list), len(self.criteria_dict.keys())))
+        for k in k_list:
+            for key in self.criteria_dict.keys():
+                skb = SelectKBest(self.criteria_dict[key], k=k)
+                skb.fit(self.X_train, self.y_train.astype(np.float).ravel())
+                select_X_train = skb.transform(self.X_train)
+                select_X_test = skb.transform(self.X_test)
 
+                encoder = OneHotEncoder()
+                y_onehot = encoder.fit_transform(self.y_test.reshape((-1,1))).toarray()
+
+                # tune C for LRM
+                ht = HyperparameterTuning()
+                opt_C, _ = ht.tune_lrm(select_X_train, self.y_train.astype(np.float).ravel())
+
+                # train LRM with optimal C
+                lrm = LogisticRegression(C=opt_C, class_weight="balanced", max_iter=3000, n_jobs=6)
+                lrm.fit(select_X_train, self.y_train.astype(np.float).ravel())
+                
+                # record performance
+                y_decf = lrm.decision_function(select_X_test)
+
+                # compute micro-averaged ROC-AUC
+                fpr, tpr, _ = metrics.roc_curve(y_onehot.ravel(), y_decf.ravel())
+                roc_auc = metrics.auc(fpr, tpr)
+
+                pf[k_list == k, self.criteria_dict.keys() == key] = roc_auc
+        
+        opt_k = k_list[np.where(pf == np.max(pf))[0][0]]
+        opt_criteria = list(self.criteria_dict.keys())[np.where(pf == np.max(pf))[1][0]]
+
+        skb = SelectKBest(self.criteria_dict[opt_criteria], k=opt_k)
+        skb.fit(self.X_train, self.y_train.astype(np.float).ravel())
+        self.skb = skb
+
+        return opt_k, opt_criteria, opt_C, roc_auc
+    
+    def transform(self, X):
+        select_X = self.skb.transform(X)
+        return select_X
+    
+    def extract_genes(self, colnames, n_genes=500): # takes list of column names corresponding to the original input matrix
+        gene_set = colnames[self.skb.scores_.argsort()[-500:]]
+
+        # separate genes which are connected together with a ";"
+        sep_geneset = []
+        for i in range(len(gene_set)):
+            split_list = gene_set[i].split(";") # element in list can contain multiple gene names (overlapping)
+            for gene in split_list:
+                if gene in sep_geneset:
+                    continue
+                else:
+                    sep_geneset.append(gene)
+
+        return sep_geneset

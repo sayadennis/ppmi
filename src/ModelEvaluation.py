@@ -14,11 +14,14 @@ class ROCMulti:
     This class was built to handle processes around model evaluation for PD progression subtype classification.
     Arguments: 
         model, X, y, n_classes (default 3)
+        model: a pre-trained model that takes an input matrix and returns a prediction
+        X: test set of input
+        y: test set of target
     
     Methods: 
         calculate macro-averaged tpr/fpr and ROC-AUC, plot 
         calculate micro-averaged tpr/fpr and ROC-AUC, plot 
-        calculate OVR tpr/fpr and ROC-AUC for class X, plot
+        calculate OVR tpr/fpr and ROC-AUC for each class, plot
         plot all ROCs mentioned above
     
     Usage:
@@ -66,7 +69,7 @@ class ROCMulti:
         roc_auc = auc(fpr, tpr)
         return roc_auc
     
-    def ovr_auc(self, class_label=None): # Either returns dict of all classes or single value of specified class
+    def ovr_auc(self, class_label=None): # Either returns dict of all classes or single value of specified class (from [0,1,2])
         if class_label is None:
             fpr = dict()
             tpr = dict()
