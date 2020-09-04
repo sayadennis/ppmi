@@ -110,7 +110,7 @@ class ROCMulti:
         roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
         
         # plot all ROC curves
-        plt.figure(figsize=(8,8))
+        fig = plt.figure(figsize=(10,10))
         plt.plot(fpr["micro"], tpr["micro"],
                 label="micro-average ROC curve (area = {0:0.2f})"
                     "".format(roc_auc["micro"]),
@@ -130,11 +130,12 @@ class ROCMulti:
         plt.plot([0, 1], [0, 1], "k--", lw=2)
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
-        plt.xlabel("False Positive Rate")
-        plt.ylabel("True Positive Rate")
-        plt.title("ROC of PD subtype prediction")
+        plt.xlabel("False Positive Rate", fontsize=14)
+        plt.ylabel("True Positive Rate", fontsize=14)
+        plt.title("ROC of Support Vector Machine", fontsize=16)
         plt.legend(loc="lower right")
 
+        return fig
 
 
 #####
