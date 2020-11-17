@@ -2,8 +2,8 @@ import os
 from datetime import datetime
 import pandas as pd
 
-input_path = "/share/fsmresfiles/pd_project/wes/filtered_exac"
-output_path = "/share/fsmresfiles/pd_project/wes/variant_count_and_label"
+input_path = "/data/filtered_exac"
+output_path = "/data/variant_count_and_label"
 
 fn_snpmx = "snp_wes_vc.csv"
 fn_indelmx = "indel_wes_vc.csv"
